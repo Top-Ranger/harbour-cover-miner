@@ -1,0 +1,10 @@
+# Qt Creator
+*.user
+*.user.*
+
+# Icon path - create with 'create_icons.sh'
+icons/*
+icons/*/*
+
+# Temp spec files
+rpm/harbour-cover-miner.spec.*
