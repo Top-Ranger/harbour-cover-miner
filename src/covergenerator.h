@@ -50,6 +50,8 @@ private:
     static inline QString get_cache_string(QString &artist, QString &album);
     void process_dir(QString dir, QDir &media_dir, QSet<QString> &processed_cache);
 
+    static const int SCALED_SIZE = 500;
+
     bool _finished;
     bool _recursive;
     QMutex _paths_mutex;

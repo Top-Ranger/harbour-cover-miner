@@ -19,6 +19,9 @@ under the License.
 #include <QImage>
 
 #include <flacfile.h>
+#include <mpegfile.h>
+#include <id3v2tag.h>
+#include <attachedpictureframe.h>
 #include <tpropertymap.h>
 
 #define check_finished() if(_finished){return;}
@@ -160,6 +163,7 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
             {
                 QString artist = tagmap.contains("ARTIST") ? QString::fromStdString(tagmap["ARTIST"].toString().to8Bit(true)) : " ";
                 QString album = tagmap.contains("ALBUM") ? QString::fromStdString(tagmap["ALBUM"].toString().to8Bit(true)) : " ";
+                // Abort if we have already processed this artist/album combination
                 if(processed_cache.contains(get_cache_string(artist, album)))
                 {
                     continue;
@@ -167,11 +171,70 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
                 QImage image = QImage::fromData(reinterpret_cast<const uchar *> (pictures[0]->data().data()), pictures[0]->data().size());
                 if(!image.isNull())
                 {
-                    image = image.scaled(QSize(500,500), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    image = image.scaled(QSize(SCALED_SIZE,SCALED_SIZE), Qt::KeepAspectRatio, Qt::SmoothTransformation);
                     image.save(media_dir.absoluteFilePath(SafeFileNames::get_file_name(artist, album)));
                     processed_cache.insert(get_cache_string(artist, album));
                 }
             }
+        }
+        // MP3
+        else if(file.endsWith(".mp3", Qt::CaseInsensitive))
+        {
+            TagLib::MPEG::File mp3(work_dir.absoluteFilePath(file).toLatin1().data());
+            if(mp3.hasID3v2Tag())
+            {
+                TagLib::ID3v2::Tag *tags = mp3.ID3v2Tag(false);
+                if(tags->frameListMap()["APIC"].isEmpty())
+                {
+                    // No images
+                    continue;
+                }
+                QString artist = " ";
+                QString album = " ";
+                if(tags->artist() != TagLib::String::null)
+                {
+                    artist = QString::fromStdString(tags->artist().to8Bit(true));
+                }
+                if(tags->album() != TagLib::String::null)
+                {
+                    album = QString::fromStdString(tags->album().to8Bit(true));
+                }
+
+                // Abort if we have already processed this artist/album combination
+                if(processed_cache.contains(get_cache_string(artist, album)))
+                {
+                    continue;
+                }
+
+                TagLib::ID3v2::FrameList apic = tags->frameListMap()["APIC"];
+
+                // Save first picture
+                TagLib::ID3v2::AttachedPictureFrame * picture = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(apic[0]);
+
+                // Try to find 'front cover' picture
+                for(TagLib::ID3v2::FrameList::Iterator i = apic.begin(); i != apic.end(); ++i)
+                {
+                    TagLib::ID3v2::AttachedPictureFrame *test_picture = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(*i);
+                    if(test_picture != 0 && test_picture->type() == TagLib::ID3v2::AttachedPictureFrame::FrontCover)
+                    {
+                        picture = test_picture;
+                        break;
+                    }
+                }
+
+                // Save image if not null
+                if(picture != 0)
+                {
+                    QImage image = QImage::fromData(reinterpret_cast<const uchar *> (picture->picture().data()), picture->picture().size());
+                    if(!image.isNull())
+                    {
+                        image = image.scaled(QSize(SCALED_SIZE,SCALED_SIZE), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                        image.save(media_dir.absoluteFilePath(SafeFileNames::get_file_name(artist, album)));
+                        processed_cache.insert(get_cache_string(artist, album));
+                    }
+                }
+            }
+
         }
     }
     if(_recursive)

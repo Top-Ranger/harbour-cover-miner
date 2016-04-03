@@ -9,6 +9,7 @@ With this tool it is possible to mine these pictures so they can be displayed by
 Supported file types:
 ---------------------
  * FLAC
+ * mp3
 
 About TagLib:
 -------------
