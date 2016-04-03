@@ -28,6 +28,7 @@ Page {
     Item {
         id: functions
         function finished() {
+            remove_covers.enabled = true
             start_button.enabled = true
             busy_indicator.running = false
             abort_button.enabled = false
@@ -43,6 +44,7 @@ Page {
             if(sd.checked) {
                 generator.add_path("/media/sdcard/")
             }
+            remove_covers.enabled = false
             start_button.enabled = false
             busy_indicator.running = true
             abort_button.enabled = true
@@ -66,6 +68,7 @@ Page {
             }
 
             MenuItem {
+                id: remove_covers
                 text: qsTr("Remove all covers")
                 onClicked: remorsePopup.execute("Remove all covers", function() { generator.clear_covers() } )
             }
