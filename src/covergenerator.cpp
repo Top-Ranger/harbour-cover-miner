@@ -305,7 +305,7 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
             // Convert image data from base64
             QString base64_image = QString::fromStdString(comments->fieldListMap()["METADATA_BLOCK_PICTURE"].front().to8Bit());
             QByteArray image_data = QByteArray::fromBase64(base64_image.toLocal8Bit());
-            TagLib::FLAC::Picture picture(image_data.data());
+            TagLib::FLAC::Picture picture(TagLib::ByteVector(image_data.data(), image_data.size()));
 
             QImage image = QImage::fromData(reinterpret_cast<const uchar *> (picture.data().data()), picture.data().size());
             if(!image.isNull())
