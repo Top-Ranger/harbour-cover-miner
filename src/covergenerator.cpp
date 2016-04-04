@@ -18,16 +18,23 @@ under the License.
 #include <QMutexLocker>
 #include <QImage>
 
+// FLAC
 #include <flacfile.h>
+
+// mp3
 #include <mpegfile.h>
-#include <id3v2tag.h>
 #include <attachedpictureframe.h>
 #include <tpropertymap.h>
+
+// ogg
 #include <oggfile.h>
 #include <oggflacfile.h>
 #include <opusfile.h>
 #include <speexfile.h>
 #include <vorbisfile.h>
+
+// Trueaudio
+#include <trueaudiofile.h>
 
 #define check_finished() if(_finished){return;}
 
@@ -141,6 +148,59 @@ QString CoverGenerator::get_cache_string(QString &artist, QString &album)
     return QString("%1|%2").arg(artist).arg(album);
 }
 
+void CoverGenerator::process_ID3v2(TagLib::ID3v2::Tag *tags, QSet<QString> &processed_cache, QDir &media_dir)
+{
+    if(tags->frameListMap()["APIC"].isEmpty())
+    {
+        // No images
+        return;
+    }
+    QString artist = " ";
+    QString album = " ";
+    if(tags->artist() != TagLib::String::null)
+    {
+        artist = QString::fromStdString(tags->artist().to8Bit(true));
+    }
+    if(tags->album() != TagLib::String::null)
+    {
+        album = QString::fromStdString(tags->album().to8Bit(true));
+    }
+
+    // Abort if we have already processed this artist/album combination
+    if(processed_cache.contains(get_cache_string(artist, album)))
+    {
+        return;
+    }
+
+    TagLib::ID3v2::FrameList apic = tags->frameListMap()["APIC"];
+
+    // Save first picture
+    TagLib::ID3v2::AttachedPictureFrame * picture = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(apic[0]);
+
+    // Try to find 'front cover' picture
+    for(TagLib::ID3v2::FrameList::Iterator i = apic.begin(); i != apic.end(); ++i)
+    {
+        TagLib::ID3v2::AttachedPictureFrame *test_picture = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(*i);
+        if(test_picture != 0 && test_picture->type() == TagLib::ID3v2::AttachedPictureFrame::FrontCover)
+        {
+            picture = test_picture;
+            break;
+        }
+    }
+
+    // Save image if not null
+    if(picture != 0)
+    {
+        QImage image = QImage::fromData(reinterpret_cast<const uchar *> (picture->picture().data()), picture->picture().size());
+        if(!image.isNull())
+        {
+            image = image.scaled(QSize(SCALED_SIZE,SCALED_SIZE), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            image.save(media_dir.absoluteFilePath(SafeFileNames::get_file_name(artist, album)));
+            processed_cache.insert(get_cache_string(artist, album));
+        }
+    }
+}
+
 void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &processed_cache)
 {
     check_finished();
@@ -199,55 +259,7 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
             if(mp3.hasID3v2Tag())
             {
                 TagLib::ID3v2::Tag *tags = mp3.ID3v2Tag(false);
-                if(tags->frameListMap()["APIC"].isEmpty())
-                {
-                    // No images
-                    continue;
-                }
-                QString artist = " ";
-                QString album = " ";
-                if(tags->artist() != TagLib::String::null)
-                {
-                    artist = QString::fromStdString(tags->artist().to8Bit(true));
-                }
-                if(tags->album() != TagLib::String::null)
-                {
-                    album = QString::fromStdString(tags->album().to8Bit(true));
-                }
-
-                // Abort if we have already processed this artist/album combination
-                if(processed_cache.contains(get_cache_string(artist, album)))
-                {
-                    continue;
-                }
-
-                TagLib::ID3v2::FrameList apic = tags->frameListMap()["APIC"];
-
-                // Save first picture
-                TagLib::ID3v2::AttachedPictureFrame * picture = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(apic[0]);
-
-                // Try to find 'front cover' picture
-                for(TagLib::ID3v2::FrameList::Iterator i = apic.begin(); i != apic.end(); ++i)
-                {
-                    TagLib::ID3v2::AttachedPictureFrame *test_picture = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(*i);
-                    if(test_picture != 0 && test_picture->type() == TagLib::ID3v2::AttachedPictureFrame::FrontCover)
-                    {
-                        picture = test_picture;
-                        break;
-                    }
-                }
-
-                // Save image if not null
-                if(picture != 0)
-                {
-                    QImage image = QImage::fromData(reinterpret_cast<const uchar *> (picture->picture().data()), picture->picture().size());
-                    if(!image.isNull())
-                    {
-                        image = image.scaled(QSize(SCALED_SIZE,SCALED_SIZE), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                        image.save(media_dir.absoluteFilePath(SafeFileNames::get_file_name(artist, album)));
-                        processed_cache.insert(get_cache_string(artist, album));
-                    }
-                }
+                process_ID3v2(tags, processed_cache, media_dir);
             }
         }
         // OGG
@@ -325,7 +337,24 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
                 processed_cache.insert(get_cache_string(artist, album));
             }
         }
+        // TrueAudio
+        else if(file.endsWith(".tta", Qt::CaseInsensitive))
+        {
+            TagLib::TrueAudio::File tta(work_dir.absoluteFilePath(file).toLatin1().data());
+            if(!tta.isValid())
+            {
+                // Invalid file - just skip it
+                continue;
+            }
+            if(tta.hasID3v2Tag())
+            {
+                TagLib::ID3v2::Tag *tags = tta.ID3v2Tag(false);
+                process_ID3v2(tags, processed_cache, media_dir);
+            }
+
+        }
     }
+
     if(_recursive)
     {
         foreach(QString subdir, work_dir.entryList(QDir::Dirs  | QDir::NoDotAndDotDot))

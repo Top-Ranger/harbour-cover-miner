@@ -22,6 +22,8 @@ under the License.
 #include <QDir>
 #include <QMutex>
 
+#include <id3v2tag.h>
+
 class CoverGenerator : public QThread
 {
     Q_OBJECT
@@ -48,6 +50,7 @@ protected:
 
 private:
     static inline QString get_cache_string(QString &artist, QString &album);
+    static void process_ID3v2(TagLib::ID3v2::Tag *tags, QSet<QString> &processed_cache, QDir &media_dir);
     void process_dir(QString dir, QDir &media_dir, QSet<QString> &processed_cache);
 
     static const int SCALED_SIZE = 500;
