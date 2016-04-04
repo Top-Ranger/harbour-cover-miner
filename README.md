@@ -12,6 +12,8 @@ Supported file types:
  * mp3
  * ogg (flac, vorbis, speex, opus)
  * TrueAudio
+ * aiff
+ * wav
 
 About TagLib:
 -------------

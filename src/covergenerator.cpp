@@ -36,6 +36,12 @@ under the License.
 // Trueaudio
 #include <trueaudiofile.h>
 
+// aiff
+#include <aifffile.h>
+
+// wav
+#include <wavfile.h>
+
 #define check_finished() if(_finished){return;}
 
 
@@ -351,7 +357,51 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
                 TagLib::ID3v2::Tag *tags = tta.ID3v2Tag(false);
                 process_ID3v2(tags, processed_cache, media_dir);
             }
-
+        }
+        // TrueAudio
+        else if(file.endsWith(".tta", Qt::CaseInsensitive))
+        {
+            TagLib::TrueAudio::File tta(work_dir.absoluteFilePath(file).toLatin1().data());
+            if(!tta.isValid())
+            {
+                // Invalid file - just skip it
+                continue;
+            }
+            if(tta.hasID3v2Tag())
+            {
+                TagLib::ID3v2::Tag *tags = tta.ID3v2Tag(false);
+                process_ID3v2(tags, processed_cache, media_dir);
+            }
+        }
+        // aiff
+        else if(file.endsWith(".aiff", Qt::CaseInsensitive) || file.endsWith(".aif", Qt::CaseInsensitive) || file.endsWith(".aifc", Qt::CaseInsensitive))
+        {
+            TagLib::RIFF::AIFF::File aiff(work_dir.absoluteFilePath(file).toLatin1().data());
+            if(!aiff.isValid())
+            {
+                // Invalid file - just skip it
+                continue;
+            }
+            if(aiff.hasID3v2Tag())
+            {
+                TagLib::ID3v2::Tag *tags = aiff.tag();
+                process_ID3v2(tags, processed_cache, media_dir);
+            }
+        }
+        // wav
+        else if(file.endsWith(".wav", Qt::CaseInsensitive))
+        {
+            TagLib::RIFF::WAV::File wav(work_dir.absoluteFilePath(file).toLatin1().data());
+            if(!wav.isValid())
+            {
+                // Invalid file - just skip it
+                continue;
+            }
+            if(wav.hasID3v2Tag())
+            {
+                TagLib::ID3v2::Tag *tags = wav.tag();
+                process_ID3v2(tags, processed_cache, media_dir);
+            }
         }
     }
 
