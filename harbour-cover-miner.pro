@@ -7,6 +7,7 @@ DISTFILES += \
     harbour-cover-miner.png \
     rpm/harbour-cover-miner.spec \
     LICENSE \
+    LEGAL \
     README.md
 
 !exists(icons/86x86/harbour-cover-miner.png) {
@@ -40,7 +41,7 @@ icon128.path = /usr/share/icons/hicolor/128x128/apps/
 icon256.files = icons/256x256/harbour-cover-miner.png
 icon256.path = /usr/share/icons/hicolor/256x256/apps/
 
-license.files = LICENSE
+license.files = LICENSE LEGAL
 license.path = /usr/share/$${TARGET}
 
 INSTALLS += desktop icon86 icon108 icon128 icon256 license
