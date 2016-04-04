@@ -86,7 +86,9 @@ Software distributed under the License is distributed on an \"AS IS\" basis, WIT
                 wrapMode: Text.Wrap
                 onLinkActivated: Qt.openUrlExternally("https://taglib.github.io")
 
-                text: "TagLib is distributed under the GNU Lesser General Public License (LGPL) and/or Mozilla Public License (MPL). For more information see: <a href=\"https://taglib.github.io/\">https://taglib.github.io/</a>"
+                text: "This application uses TagLib.
+
+TagLib is distributed under the GNU Lesser General Public License (LGPL) and/or Mozilla Public License (MPL). For more information see: <a href=\"https://taglib.github.io/\">https://taglib.github.io/</a>"
             }
         }
     }
