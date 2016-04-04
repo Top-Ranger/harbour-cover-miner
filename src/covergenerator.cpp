@@ -23,6 +23,11 @@ under the License.
 #include <id3v2tag.h>
 #include <attachedpictureframe.h>
 #include <tpropertymap.h>
+#include <oggfile.h>
+#include <oggflacfile.h>
+#include <opusfile.h>
+#include <speexfile.h>
+#include <vorbisfile.h>
 
 #define check_finished() if(_finished){return;}
 
@@ -234,7 +239,81 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
                     }
                 }
             }
+        }
+        // OGG
+        else if(file.endsWith(".ogg", Qt::CaseInsensitive) || file.endsWith(".oga", Qt::CaseInsensitive) || file.endsWith(".ogv", Qt::CaseInsensitive) || file.endsWith(".ogx", Qt::CaseInsensitive) || file.endsWith(".spx", Qt::CaseInsensitive) || file.endsWith(".opus", Qt::CaseInsensitive))
+        {
+            // We need to test for all codecs
+            TagLib::Ogg::FLAC::File flac(work_dir.absoluteFilePath(file).toLatin1().data());
+            TagLib::Ogg::Vorbis::File vorbis(work_dir.absoluteFilePath(file).toLatin1().data());
+            TagLib::Ogg::Speex::File speex(work_dir.absoluteFilePath(file).toLatin1().data());
+            TagLib::Ogg::Opus::File opus(work_dir.absoluteFilePath(file).toLatin1().data());
+            TagLib::Ogg::XiphComment *comments = 0;
+            if(flac.isValid())
+            {
+                // FLAC codec
+                if(!flac.hasXiphComment())
+                {
+                    continue;
+                }
+                comments = flac.tag();
+            }
+            else if(vorbis.isValid())
+            {
+                // vorbis codec
+                comments = vorbis.tag();
+            }
+            else if(speex.isValid())
+            {
+                // speex codec
+                comments = speex.tag();
+            }
+            else if(opus.isValid())
+            {
+                // opus codec
+                comments = opus.tag();
+            }
+            else
+            {
+                // No codec found - just continue with next file
+                continue;
+            }
 
+            // Extract information
+            if(!comments->contains("METADATA_BLOCK_PICTURE"))
+            {
+                // No image
+                continue;
+            }
+            QString album = " ";
+            QString artist = " ";
+            if(comments->album() != TagLib::String::null)
+            {
+                album = QString::fromStdString(comments->album().to8Bit(true));
+            }
+            if(comments->artist() != TagLib::String::null)
+            {
+                artist = QString::fromStdString(comments->artist().to8Bit(true));
+            }
+
+            // Abort if we have already processed this artist/album combination
+            if(processed_cache.contains(get_cache_string(artist, album)))
+            {
+                continue;
+            }
+
+            // Convert image data from base64
+            QString base64_image = QString::fromStdString(comments->fieldListMap()["METADATA_BLOCK_PICTURE"].front().to8Bit());
+            QByteArray image_data = QByteArray::fromBase64(base64_image.toLocal8Bit());
+            TagLib::FLAC::Picture picture(image_data.data());
+
+            QImage image = QImage::fromData(reinterpret_cast<const uchar *> (picture.data().data()), picture.data().size());
+            if(!image.isNull())
+            {
+                image = image.scaled(QSize(SCALED_SIZE,SCALED_SIZE), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                image.save(media_dir.absoluteFilePath(SafeFileNames::get_file_name(artist, album)));
+                processed_cache.insert(get_cache_string(artist, album));
+            }
         }
     }
     if(_recursive)
