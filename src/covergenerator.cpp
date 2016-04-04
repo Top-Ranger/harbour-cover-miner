@@ -162,6 +162,11 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
         if(file.endsWith(".flac", Qt::CaseInsensitive) || file.endsWith(".fla", Qt::CaseInsensitive))
         {
             TagLib::FLAC::File flac(work_dir.absoluteFilePath(file).toLatin1().data());
+            if(!flac.isValid())
+            {
+                // Invalid file - just skip it
+                continue;
+            }
             TagLib::List<TagLib::FLAC::Picture *> pictures = flac.pictureList();
             TagLib::PropertyMap tagmap = flac.properties();
             if(pictures.size() > 0)
@@ -186,6 +191,11 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
         else if(file.endsWith(".mp3", Qt::CaseInsensitive))
         {
             TagLib::MPEG::File mp3(work_dir.absoluteFilePath(file).toLatin1().data());
+            if(!mp3.isValid())
+            {
+                // Invalid file - just skip it
+                continue;
+            }
             if(mp3.hasID3v2Tag())
             {
                 TagLib::ID3v2::Tag *tags = mp3.ID3v2Tag(false);
