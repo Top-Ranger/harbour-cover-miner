@@ -20,6 +20,18 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
+    // For some reason the app might not show when mining has finished - this will hopefully fix that
+    Timer {
+        id: workaround
+        interval: 5000
+        repeat: true
+        onTriggered: {
+            if(generator.finished()) {
+                functions.finished()
+            }
+        }
+    }
+
     Connections {
         target: generator
         onGeneration_finished: functions.finished()
@@ -28,6 +40,7 @@ Page {
     Item {
         id: functions
         function finished() {
+            workaround.stop()
             remove_covers.enabled = true
             start_button.enabled = true
             busy_indicator.running = false
@@ -50,6 +63,7 @@ Page {
             abort_button.enabled = true
             home.enabled = false
             sd.enabled = false
+            workaround.start()
             generator.start()
 
         }

@@ -16,6 +16,31 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 
 CoverBackground {
+
+    // For some reason the app might not show when mining has finished - this will hopefully fix that
+    Timer {
+        id: cover_workaround
+        interval: 5000
+        repeat: true
+        onTriggered: {
+            if(generator.finished()) {
+                finished_mining()
+            }
+        }
+    }
+
+    function finished_mining() {
+        cover_workaround.stop()
+        busy.color = Theme.secondaryHighlightColor
+        busy.text = "Not mining"
+    }
+
+    function started_mining() {
+        cover_workaround.start()
+        busy.color = Theme.highlightColor
+        busy.text = "Currently mining!"
+    }
+
     Column {
         anchors.centerIn: parent
         Label {
@@ -30,13 +55,11 @@ CoverBackground {
     Connections {
         target: generator
         onGeneration_started: {
-            busy.color = Theme.highlightColor
-            busy.text = "Currently mining!"
+            started_mining()
         }
 
         onGeneration_finished: {
-            busy.color = Theme.secondaryHighlightColor
-            busy.text = "Not mining"
+            finished_mining()
         }
     }
 }
