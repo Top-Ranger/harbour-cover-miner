@@ -407,7 +407,7 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
 
     if(_recursive)
     {
-        foreach(QString subdir, work_dir.entryList(QDir::Dirs  | QDir::NoDotAndDotDot))
+        foreach(QString subdir, work_dir.entryList(QDir::Dirs  | QDir::NoDotAndDotDot | QDir::NoSymLinks))
         {
             check_finished();
             process_dir(work_dir.absoluteFilePath(subdir), media_dir, processed_cache);
