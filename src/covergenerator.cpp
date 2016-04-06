@@ -82,6 +82,7 @@ CoverGenerator::CoverGenerator() :
 
 void CoverGenerator::clear_list()
 {
+    QMutexLocker locker(&_paths_mutex);
     _paths.clear();
 }
 
@@ -124,6 +125,8 @@ void CoverGenerator::wait_finished()
 void CoverGenerator::run()
 {
     QMutexLocker locker(&_paths_mutex);
+    QSet<QString> paths = _paths;
+    locker.unlock();
     QSet<QString> processed_cache;
 
     _finished = false;
@@ -150,7 +153,7 @@ void CoverGenerator::run()
         }
     }
 
-    for(QSet<QString>::iterator i = _paths.begin(); i != _paths.end(); ++i)
+    for(QSet<QString>::iterator i = paths.begin(); i != paths.end(); ++i)
     {
         // Check if we should abort early
         if(_abort)
