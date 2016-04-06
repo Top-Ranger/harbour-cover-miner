@@ -14,6 +14,7 @@ Supported file types:
  * TrueAudio
  * aiff
  * wav
+ * mp4
 
 About TagLib:
 -------------
@@ -22,6 +23,5 @@ For more information see: https://taglib.github.io/
 
 License:
 --------
-
 This project is licensed under the Mozilla Public License version 1.1
 For more information see "LICENSE"

@@ -42,6 +42,9 @@ under the License.
 // wav
 #include <wavfile.h>
 
+// mp4
+#include <mp4file.h>
+
 #define check_finished() if(_abort){return;}
 
 
@@ -410,6 +413,59 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
                 process_ID3v2(tags, processed_cache, media_dir);
             }
         }
+        // mp4
+        else if(file.endsWith(".mp4", Qt::CaseInsensitive) || file.endsWith(".m4a", Qt::CaseInsensitive))
+        {
+            TagLib::MP4::File mp4(work_dir.absoluteFilePath(file).toLatin1().data());
+            if(!mp4.isValid())
+            {
+                // Invalid file - just skip it
+                continue;
+            }
+            TagLib::MP4::Tag *tags = mp4.tag();
+            if(tags == 0)
+            {
+                // No tags
+                continue;
+            }
+            if(!tags->itemListMap().contains("covr"))
+            {
+                // No covers - continue
+                continue;
+            }
+            QString album = " ";
+            QString artist = " ";
+            if(tags->album() != TagLib::String::null)
+            {
+                album = QString::fromStdString(tags->album().to8Bit(true));
+            }
+            if(tags->artist() != TagLib::String::null)
+            {
+                artist = QString::fromStdString(tags->artist().to8Bit(true));
+            }
+            // Abort if we have already processed this artist/album combination
+            if(processed_cache.contains(get_cache_string(artist, album)))
+            {
+                continue;
+            }
+
+            // Find a cover image
+            TagLib::MP4::CoverArtList pictures = tags->itemListMap()["covr"].toCoverArtList();
+            for(TagLib::MP4::CoverArtList::ConstIterator i = pictures.begin(); i != pictures.end(); ++i)
+            {
+                TagLib::MP4::CoverArt cover = *i;
+                QImage image = QImage::fromData(reinterpret_cast<const uchar *>(cover.data().data()), cover.data().size());
+                if(!image.isNull())
+                {
+                    // Found valid picture
+                    image = image.scaled(QSize(SCALED_SIZE,SCALED_SIZE), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    image.save(media_dir.absoluteFilePath(SafeFileNames::get_file_name(artist, album)));
+                    processed_cache.insert(get_cache_string(artist, album));
+                    // No need to search furher
+                    break;
+                }
+            }
+        }
     }
 
     if(_recursive)
@@ -421,4 +477,3 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
         }
     }
 }
-
