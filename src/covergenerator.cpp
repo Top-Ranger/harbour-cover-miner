@@ -42,7 +42,7 @@ under the License.
 // wav
 #include <wavfile.h>
 
-#define check_finished() if(_finished){return;}
+#define check_finished() if(_abort){return;}
 
 
 bool CoverGenerator::clear_covers()
@@ -69,6 +69,7 @@ bool CoverGenerator::clear_covers()
 }
 
 CoverGenerator::CoverGenerator() :
+    _abort(false),
     _finished(true),
     _recursive(true),
     _paths_mutex(),
@@ -109,7 +110,7 @@ QSet<QString> CoverGenerator::paths()
 
 void CoverGenerator::abort()
 {
-    _finished = true;
+    _abort = true;
 }
 
 void CoverGenerator::run()
@@ -118,6 +119,7 @@ void CoverGenerator::run()
     QSet<QString> processed_cache;
 
     _finished = false;
+    _abort = false;
     emit generation_started();
 
     QDir dir = QDir::home();
@@ -142,6 +144,11 @@ void CoverGenerator::run()
 
     for(QSet<QString>::iterator i = _paths.begin(); i != _paths.end(); ++i)
     {
+        // Check if we should abort early
+        if(_abort)
+        {
+            break;
+        }
         process_dir(*i, dir, processed_cache);
     }
 

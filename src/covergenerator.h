@@ -55,6 +55,7 @@ private:
 
     static const int SCALED_SIZE = 500;
 
+    bool _abort;
     bool _finished;
     bool _recursive;
     QMutex _paths_mutex;
