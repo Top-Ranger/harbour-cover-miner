@@ -28,5 +28,10 @@ int main(int argc, char *argv[])
 
     view->setSource(SailfishApp::pathTo("qml/harbour-cover-miner.qml"));
     view->show();
+
+    // Stop the mining thread when computation finishes
+    QObject::connect(app, SIGNAL(aboutToQuit()), &generator, SLOT(abort()));
+    QObject::connect(app, SIGNAL(aboutToQuit()), &generator, SLOT(wait_finished()));
+
     return app->exec();
 }

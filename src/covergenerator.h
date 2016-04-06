@@ -37,13 +37,14 @@ public:
     Q_INVOKABLE bool finished();
     Q_INVOKABLE bool recursive();
     Q_INVOKABLE QSet<QString> paths();
-    Q_INVOKABLE void abort();
 
 signals:
     void generation_started();
     void generation_finished();
 
 public slots:
+    Q_INVOKABLE void abort();
+    Q_INVOKABLE void wait_finished();
 
 protected:
     void run();

@@ -20,5 +20,4 @@ ApplicationWindow
 {
     initialPage: Component { Starter { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
-    Component.onDestruction: generator.abort()
 }

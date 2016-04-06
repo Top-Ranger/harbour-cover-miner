@@ -116,6 +116,11 @@ void CoverGenerator::abort()
     _abort = true;
 }
 
+void CoverGenerator::wait_finished()
+{
+    this->wait();
+}
+
 void CoverGenerator::run()
 {
     QMutexLocker locker(&_paths_mutex);
