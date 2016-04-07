@@ -60,12 +60,15 @@ Page {
                 width: about_page.width
                 font.pixelSize: Theme.fontSizeExtraSmall
                 wrapMode: Text.Wrap
+                onLinkActivated: Qt.openUrlExternally("https://github.com/Top-Ranger/harbour-cover-miner")
 
                 text: "Copyright (C) 2016 Marcus Soll
 
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the \"License\"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/
 
-Software distributed under the License is distributed on an \"AS IS\" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific language governing rights and limitations under the License."
+Software distributed under the License is distributed on an \"AS IS\" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific language governing rights and limitations under the License.
+
+The source code of 'Cover Miner' can be found at https://github.com/Top-Ranger/harbour-cover-miner"
             }
 
             PageHeader {
@@ -86,9 +89,7 @@ Software distributed under the License is distributed on an \"AS IS\" basis, WIT
                 wrapMode: Text.Wrap
                 onLinkActivated: Qt.openUrlExternally("https://taglib.github.io/")
 
-                text: "<html>This application uses TagLib.
-
-TagLib is distributed under the GNU Lesser General Public License (LGPL) and/or Mozilla Public License (MPL). For more information see: <a href=\"https://taglib.github.io/\">https://taglib.github.io/</a></html>"
+                text: "<html>This application uses TagLib. TagLib is distributed under the GNU Lesser General Public License (LGPL) and/or Mozilla Public License (MPL). For more information see: <a href=\"https://taglib.github.io/\">https://taglib.github.io/</a></html>"
             }
         }
     }
