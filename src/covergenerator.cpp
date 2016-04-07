@@ -325,6 +325,12 @@ void CoverGenerator::process_dir(QString dir, QDir &media_dir, QSet<QString> &pr
                 continue;
             }
 
+            if(comments == 0)
+            {
+                // Invalid metadata
+                continue;
+            }
+
             // Extract information
             if(!comments->contains("METADATA_BLOCK_PICTURE"))
             {
