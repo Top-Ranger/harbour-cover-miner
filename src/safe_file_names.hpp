@@ -121,11 +121,7 @@ inline QString strip_name(QString s)
     }
 
     // Whitespaces
-    s = s.trimmed();
-    while(s.contains("  "))
-    {
-        s.replace("  ", " ");
-    }
+    s = s.simplified();
 
     // Tabs -> spaces
     s.replace("\t", " ");
