@@ -89,7 +89,7 @@ The source code of 'Cover Miner' can be found at https://github.com/Top-Ranger/h
                 wrapMode: Text.Wrap
                 onLinkActivated: Qt.openUrlExternally("https://taglib.github.io/")
 
-                text: "<html>This application uses TagLib. TagLib is distributed under the GNU Lesser General Public License (LGPL) and/or Mozilla Public License (MPL). For more information see: <a href=\"https://taglib.github.io/\">https://taglib.github.io/</a></html>"
+                text: "<html>This application uses TagLib. TagLib is distributed under the GNU Lesser General Public License (LGPL) and/or Mozilla Public License (MPL). For more information, including the source code of TagLib, see: <a href=\"https://taglib.github.io/\">https://taglib.github.io/</a></html>"
             }
         }
     }
